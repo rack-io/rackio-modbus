@@ -170,4 +170,20 @@ class ModbusServer():
         value = engine.read_tag(tag)
 
         return mapping.coil(value)
-    
+
+    def setup_bindings(self):
+
+        hr_addresses = list(range(len(self.holding_registers)))
+        ir_addresses = list(range(len(self.input_registers)))
+        coil_addresses = list(range(len(self.coils)))
+        discrete_addresses = list(range(len(self.discrete)))
+
+        if hr_addresses:
+            router = self.app.route(slave_ids=[1], function_codes=[6, 16], addresses=hr_addresses)
+            f = self.write_register
+            router(f)
+        if ir_addresses:
+            router = self.app.route(slave_ids=[1], function_codes=[3, 4], addresses=ir_addresses)
+            f = self.read_register
+            router(f)
+        

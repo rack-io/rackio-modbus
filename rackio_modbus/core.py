@@ -13,6 +13,7 @@ from umodbus.client import tcp
 from umodbus.utils import log_to_stream
 
 from ._singleton import Singleton
+from ._server import ModbusServer
 from .worker import ModbusWorker
 
 from .decorator import AppendWorker
@@ -27,10 +28,7 @@ class ModbusCore(Singleton):
 
     def define_server(self):
 
-        conf.SIGNED_VALUES = True
-
-        TCPServer.allow_reuse_address = True
-        return get_server(TCPServer, ('localhost', 502), RequestHandler)
+        self.modbus_driver = ModbusServer()
 
     def define_client(self, *args, **kwargs):
 
@@ -41,7 +39,7 @@ class ModbusCore(Singleton):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((remote, 502))
 
-        return {"socket": sock, "tcp": tcp}
+        self.modbus_driver = {"socket": sock, "tcp": tcp}
 
     def __call__(self, app=None, mode="server", *args, **kwargs):
 
@@ -49,9 +47,9 @@ class ModbusCore(Singleton):
             return self.modbus_driver
 
         if mode == "server":
-            self.modbus_driver = self.define_server()
+            self.define_server()
         else:
-            self.modbus_driver = self.define_client()
+            self.define_client()
         
         self.worker = ModbusWorker(self.modbus_driver, mode)
 
