@@ -26,7 +26,15 @@ class FloatTagMap:
         lower = self.lower
         OFFSET = self.OFFSET
 
-        return int(((value - lower) / (upper - lower)) * 65535) + OFFSET
+        result = int(((value - lower) / (upper - lower)) * 65535) + OFFSET
+
+        if result < 0:
+            return 0
+
+        if result > 65535:
+            return 65535
+        
+        return result
 
     def value(self, register):
 
@@ -52,7 +60,15 @@ class IntTagMap:
         lower = self.lower
         OFFSET = self.OFFSET
 
-        return int(((value - lower) / (upper - lower)) * 65535) + OFFSET
+        result = int(((value - lower) / (upper - lower)) * 65535) + OFFSET
+
+        if result < 0:
+            return 0
+
+        if result > 65535:
+            return 65535
+
+        return result
 
     def value(self, register):
 

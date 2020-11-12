@@ -32,7 +32,7 @@ tag_egine.set_tag("T3", "float")
 
 # Modbus mapping
 
-driver.define_mapping("T1", "write", 0, 60)
+driver.define_mapping("T1", "write", 0, 60) # Tag, mode, lower limit, upper limit
 driver.define_mapping("T2", "write", 0, 50)
 driver.define_mapping("T3", "read", 0, 110)
 ```
