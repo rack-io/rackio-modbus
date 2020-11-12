@@ -7,6 +7,8 @@ from umodbus.server.tcp import RequestHandler, get_server
 
 from rackio import TagEngine
 
+from .api import MappingResource
+
 
 class FloatTagMap:
 
@@ -98,6 +100,56 @@ class ModbusServer():
 
         return self.app
 
+    def serialize_mappings(self):
+
+        result = dict()
+
+        result["holding_registers"] = list()
+        
+        for mapping in self.holding_registers:
+
+            record = {
+                "tag": mapping.tag,
+                "upper": mapping.upper,
+                "lower": mapping.lower
+            }
+
+            result["holding_registers"].append(record)
+
+        result["input_registers"] = list()
+        
+        for mapping in self.input_registers:
+
+            record = {
+                "tag": mapping.tag,
+                "upper": mapping.upper,
+                "lower": mapping.lower
+            }
+
+            result["input_registers"].append(record)
+
+        result["coils"] = list()
+        
+        for mapping in self.coils:
+
+            record = {
+                "tag": mapping.tag
+            }
+
+            result["coils"].append(record)
+
+        result["discrete"] = list()
+        
+        for mapping in self.discrete:
+
+            record = {
+                "tag": mapping.tag
+            }
+
+            result["discrete"].append(record)
+
+        return result
+
     def define_mapping(self, tag, direction, lower, upper):
 
         engine = TagEngine()
@@ -126,6 +178,8 @@ class ModbusServer():
                 self.discrete.append(mapping)
             else:
                 self.coils.append(mapping)
+
+        self.mappings.append(mapping)
 
     def write_register(self, slave_id, function_code, address, value):
 
@@ -188,7 +242,27 @@ class ModbusServer():
             router = self.app.route(slave_ids=[1], function_codes=[6, 16], addresses=hr_addresses)
             f = self.write_register
             router(f)
+        
         if ir_addresses:
             router = self.app.route(slave_ids=[1], function_codes=[3, 4], addresses=ir_addresses)
             f = self.read_register
             router(f)
+        
+        if coil_addresses:
+            router = self.app.route(slave_ids=[1], function_codes=[5, 15], addresses=coil_addresses)
+            f = self.write_coil
+            router(f)
+
+        if discrete_addresses:
+            router = self.app.route(slave_ids=[1], function_codes=[1, 2], addresses=discrete_addresses)
+            f = self.read_input
+            router(f)
+
+    def setup_api(self):
+
+        from rackio import Rackio
+
+        app = Rackio()
+
+        resource = MappingResource(self.serialize_mappings())
+        app.add_route("/api/modbus/mappings", resource)

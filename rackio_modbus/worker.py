@@ -28,6 +28,7 @@ class ModbusWorker(Thread):
         try:
             if self.mode == "server":
                 self.app.setup_bindings()
+                self.app.setup_api()
                 app = self.app.get_driver()
                 app.serve_forever()
             else:
