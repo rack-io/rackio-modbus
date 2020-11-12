@@ -14,6 +14,9 @@ log_to_stream(level=logging.DEBUG)
 # A very simple data store which maps addresses against their values.
 data_store = defaultdict(int)
 
+for i in range(10):
+    data_store[i] = i + 20
+
 # Enable values to be signed (default is False).
 conf.SIGNED_VALUES = True
 
@@ -21,13 +24,14 @@ TCPServer.allow_reuse_address = True
 app = get_server(TCPServer, ('localhost', 502), RequestHandler)
 
 
-@app.route(slave_ids=[1], function_codes=[1, 2], addresses=list(range(0, 10)))
+@app.route(slave_ids=[1], function_codes=[4, 3], addresses=list(range(0, 10)))
 def read_data_store(slave_id, function_code, address):
     """" Return value of address. """
+    print(data_store[address])
     return data_store[address]
 
 
-@app.route(slave_ids=[1], function_codes=[5, 15], addresses=list(range(0, 10)))
+@app.route(slave_ids=[1], function_codes=[6, 16], addresses=list(range(0, 10)))
 def write_data_store(slave_id, function_code, address, value):
     """" Set value for address. """
     data_store[address] = value

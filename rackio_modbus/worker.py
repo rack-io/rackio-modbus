@@ -3,22 +3,33 @@
 
 This module implements the core app class and methods for Rackio Socket.
 """
+import time
 
 from threading import Thread
 
 
 class ModbusWorker(Thread):
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app, mode, *args, **kwargs):
 
         super(ModbusWorker, self).__init__(*args, **kwargs)
 
         self.app = app
+        self.mode = mode
+
+    def run_client(self):
+
+        while True:
+
+            time.sleep(0.5)
 
     def run(self):
 
         try:
-            self.app.serve_forever()
+            if self.mode == "server":
+                self.app.serve_forever()
+            else:
+                self.run_client()
         finally:
             self.app.shutdown()
             self.app.server_close()
