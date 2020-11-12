@@ -1,10 +1,8 @@
-import time
-
 from rackio import Rackio, TagEngine
-from rackio.models import Tag
 from rackio.controls import ValueAction, Condition, Control
 
-from random import random
+from rackio_modbus import RackioModbus
+
 
 app = Rackio()
 
@@ -33,6 +31,14 @@ control2 = Control("C2", cond2, act2)
 
 app.append_control(control1)
 app.append_control(control2)
+
+# Modbus mapping
+
+driver = RackioModbus(app, mode="server")
+
+driver.define_mapping("T1", "write", 0, 60)
+driver.define_mapping("T2", "write", 0, 50)
+driver.define_mapping("T3", "read", 0, 110)
 
 @app.rackit_on(period=1)
 def reader():

@@ -5,23 +5,26 @@ from socketserver import TCPServer
 from umodbus import conf
 from umodbus.server.tcp import RequestHandler, get_server
 
-from Rackio import TagEngine
+from rackio import TagEngine
 
 
 class FloatTagMap:
 
-    def __init__(self, tag, upper, lower):
+    def __init__(self, tag, lower, upper):
 
         self.tag = tag
         self.upper = upper
         self.lower = lower
 
+        self.OFFSET = 0
+
     def register(self, value):
 
         upper = self.upper
         lower = self.lower
+        OFFSET = self.OFFSET
 
-        return int(((value - lower) / (upper - lower)) * 65535)
+        return int(((value - lower) / (upper - lower)) * 65535) + OFFSET
 
     def value(self, register):
 
@@ -33,18 +36,21 @@ class FloatTagMap:
 
 class IntTagMap:
 
-    def __init__(self, tag, upper, lower):
+    def __init__(self, tag, lower, upper):
 
         self.tag = tag
         self.upper = upper
         self.lower = lower
 
+        self.OFFSET = 0
+
     def register(self, value):
 
         upper = self.upper
         lower = self.lower
+        OFFSET = self.OFFSET
 
-        return int(((value - lower) / (upper - lower)) * 65535)
+        return int(((value - lower) / (upper - lower)) * 65535) + OFFSET
 
     def value(self, register):
 
@@ -92,14 +98,14 @@ class ModbusServer():
 
         return self.app
 
-    def define_mapping(self, tag, direction, upper, lower):
+    def define_mapping(self, tag, direction, lower, upper):
 
         engine = TagEngine()
 
         _type = engine.get_type(tag)
 
         if _type == "float":
-            mapping = FloatTagMap(tag, upper, lower)
+            mapping = FloatTagMap(tag, lower, upper)
 
             if direction == "write":
                 self.holding_registers.append(mapping)
@@ -107,7 +113,7 @@ class ModbusServer():
                 self.input_registers.append(mapping)
 
         elif _type == "int":
-            mapping = IntTagMap(tag, upper, lower)
+            mapping = IntTagMap(tag, lower, upper)
 
             if direction == "write":
                 self.holding_registers.append(mapping)
@@ -186,4 +192,3 @@ class ModbusServer():
             router = self.app.route(slave_ids=[1], function_codes=[3, 4], addresses=ir_addresses)
             f = self.read_register
             router(f)
-        
