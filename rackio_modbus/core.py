@@ -41,7 +41,7 @@ class ModbusCore(Singleton):
 
         self.modbus_driver = {"socket": sock, "tcp": tcp}
 
-    def __call__(self, app=None, mode="server", *args, **kwargs):
+    def __call__(self, app=None, coldstart=False, mode="server", *args, **kwargs):
 
         if not app:
             return self.modbus_driver
@@ -53,7 +53,12 @@ class ModbusCore(Singleton):
         
         self.worker = ModbusWorker(self.modbus_driver, mode)
 
-        app._start_workers = AppendWorker(app._start_workers, self.worker)
+        if not coldstart:
+            app._start_workers = AppendWorker(app._start_workers, self.worker)
 
         return self.modbus_driver
+
+    def run(self):
+
+        self.worker.start()
     
